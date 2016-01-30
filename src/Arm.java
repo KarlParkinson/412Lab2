@@ -53,34 +53,73 @@ public class Arm {
 		return pos;
 	}
 	
+	/*
+	 * Waits for button to be pressed and returns the point the 
+	 * arm end effector is currently at .
+	 */
+	public double[] getPoint(){
+		double[] point = {0,0};
+		
+		this.j1.flt();
+		this.j2.flt();
+		Button.waitForAnyPress();
+		point = forwardKinematics(j1.getTachoCount(),j2.getTachoCount());
+		
+		return point;
+	}
 	
+	/*
+	 * Measures the distance between two points selected by moving 
+	 * arm and pressing EV3 brick button
+	 */
 	public void measureDistance(){
 		double[] pos1, pos2 = {0,0};
 		double distance;
 		
-		System.out.println("Pick 1st point \n and press button");
-		//this.j1.rotateTo(0, true);
+		//this.j1.rotateTo(90, true);
 		//this.j2.rotateTo(0);
-		this.j1.flt();
-		this.j2.flt();
-		Button.waitForAnyPress();
-		pos1 = forwardKinematics(j1.getTachoCount(),j2.getTachoCount());
-		System.out.println("Pick 2nd point \n and press button");
-		this.j1.flt();
-		this.j2.flt();
-		Button.waitForAnyPress();
-		pos2 = forwardKinematics(j1.getTachoCount(),j2.getTachoCount());
 		
+		System.out.println("Pick point \n and press button");
+		pos1 = getPoint();
+		System.out.println("Pick 2nd point \n and press button");
+		pos2 = getPoint();
+		
+		// d = sqrt(y2-y1)^2 + (x2-x1)^2)
 		distance = Math.sqrt(Math.pow((pos2[0]-pos1[0]),2) + Math.pow((pos2[1]-pos1[1]),2));
 		System.out.println("Distance: " + distance);
 		Button.waitForAnyPress();
+	}
+	
+	public void measureAngle(){
+		double[] pos1, pos2, pos3 = {0,0};
+		double distance, slope1, slope2;
+		
+		this.j1.rotateTo(0, true);
+		this.j2.rotateTo(0);
+		
+		System.out.println("Pick intersection \n and press button");
+		pos1 = getPoint();
+		System.out.println("Pick 1st line \n and press button");
+		pos2 = getPoint();
+		System.out.println("Pick 2nd line \n and press button");
+		pos3 = getPoint();
+		
+		slope1 = Math.abs(pos1[1] - pos2[1]) / Math.abs(pos1[0] - pos2[0]);
+		slope2 = Math.abs(pos1[1] - pos3[1]) / Math.abs(pos1[0] - pos3[0]);
+		
+		double angle = Math.atan((slope1 -slope2) / (1+ slope1*slope2));
+		
+		System.out.println("Angle: " + Math.toDegrees(angle));
+		Button.waitForAnyPress();
+		
 	}
 	
 	
 	public static void main(String[] args) {
 		Arm a = new Arm();
 		//a.goToAngle(180, 270);
-		
+		a.measureDistance();
+		//a.measureAngle();
 	}
 	
 	

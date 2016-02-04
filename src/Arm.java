@@ -56,8 +56,8 @@ public class Arm {
 		double x = this.l1*Math.cos(radians1) + this.l2*Math.cos(radians1 + radians2);
 		double y = this.l1*Math.sin(radians1) + this.l2*Math.sin(radians1 + radians2);
 		
-		System.out.printf("x: %.2f \n",x);
-		System.out.printf("y: %.2f \n",y);
+		//System.out.printf("x: %.2f \n",x);
+		//System.out.printf("y: %.2f \n",y);
 		double[] pos = {x,y};
 		return pos;
 	}
@@ -95,7 +95,11 @@ public class Arm {
 		
 		// d = sqrt(y2-y1)^2 + (x2-x1)^2)
 		distance = Math.sqrt(Math.pow((pos2[0]-pos1[0]),2) + Math.pow((pos2[1]-pos1[1]),2));
-		System.out.println("Distance: " + distance);
+		
+		System.out.printf("p1: (%.1f,%.1f) \n",pos1[0],pos1[1]);
+		System.out.printf("p2: (%.1f,%.1f) \n",pos2[0],pos2[1]);
+		System.out.printf("distance: %.1f \n",distance);
+		
 		Button.waitForAnyPress();
 	}
 	
@@ -108,7 +112,7 @@ public class Arm {
 		
 		//J.print(System.out);
 		//Button.waitForAnyPress();
-		for(int i = 0; i < 50;i++){
+		for(int i = 0; i < 15;i++){
 			
 			Jx1 = -1*this.l1*Math.sin(angleMat.get(0,0)) - this.l2*Math.sin(angleMat.get(0,0) + angleMat.get(1, 0));
 			Jx2 = -1*this.l2*Math.sin(angleMat.get(0,0) + angleMat.get(1, 0));
@@ -125,6 +129,11 @@ public class Arm {
 			angleMat.plusEquals(s);
 		}
 		angles = angleMat.getArrayCopy();
+		
+		angles[0][0] = angles[0][0] % (2*Math.PI);
+		angles[1][0] = angles[1][0] % (2*Math.PI);
+		
+		
 		return angles;
 	}
 	
@@ -187,11 +196,14 @@ public class Arm {
 		double ul = Math.sqrt(Math.pow(u[0],2) + Math.pow(u[1], 2));
 		double vl = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1], 2));
 		
-		double angle = Math.acos(((u[0]*v[0])+u[1]*v[1])/(ul*vl));
+		double angle = Math.acos(((u[0]*v[0])+u[1]*v[1])/(ul*vl));	
 		
-		//double angle = Math.atan((m1 - m2) / (1 + m2*m1));	
+		System.out.printf("p1: (%.1f,%.1f) \n",pos1[0],pos1[1]);
+		System.out.printf("p2: (%.1f,%.1f) \n",pos2[0],pos2[1]);
+		System.out.printf("p3: (%.1f,%.1f) \n",pos3[0],pos3[1]);
+		System.out.printf("angle: %.1f \n",Math.toDegrees(angle));
 		
-		System.out.printf("Angle: %.2f \n",Math.toDegrees(angle));
+		
 		Button.waitForAnyPress();
 		
 	}
@@ -199,9 +211,6 @@ public class Arm {
 	public void findMidPoint(){
 		double[] pos1, pos2 = {0,0};
 		double distance;
-		
-		//this.j1.rotateTo(90, true);
-		//this.j2.rotateTo(0);
 		
 		System.out.println("Pick point \n and press button");
 		pos1 = getPoint();
@@ -214,9 +223,11 @@ public class Arm {
 		
 		this.gotToPoint(x, y);		
 		
-		// d = sqrt(y2-y1)^2 + (x2-x1)^2)
-		//distance = Math.sqrt(Math.pow((pos2[0]-pos1[0]),2) + Math.pow((pos2[1]-pos1[1]),2));
-		//System.out.println("Distance: " + distance);
+		
+		System.out.printf("p1: (%.1f,%.1f) \n",pos1[0],pos1[1]);
+		System.out.printf("p2: (%.1f,%.1f) \n",pos2[0],pos2[1]);
+		System.out.printf("mid: (%.1f,%.1f) \n",x,y);
+		
 		Button.waitForAnyPress();
 	}
 	
@@ -225,10 +236,10 @@ public class Arm {
 	public static void main(String[] args) {
 		Arm a = new Arm();
 		//a.goToAngle(180, 270);
-		//a.measureDistance();
+		a.measureDistance();
 		//a.measureAngle();
 		//a.gotToPoint(1, 10);
-		a.findMidPoint();
+		//a.findMidPoint();
 		/*
 		double[][] angles1, angles2 = {{},{}};
 		

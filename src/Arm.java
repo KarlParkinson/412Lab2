@@ -6,6 +6,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 import java.lang.Math;
 
+import lejos.utility.Matrix;;
+
+
 public class Arm {
 	
 	EV3LargeRegulatedMotor j1;
@@ -18,16 +21,22 @@ public class Arm {
 		this.j1 = new EV3LargeRegulatedMotor(MotorPort.D);
 		this.j2 = new EV3LargeRegulatedMotor(MotorPort.A);
 		
-		//this.l1 = 4.8;
-		this.l2 = 6.4;
-		this.l1 = 11.5;
+		j1.setSpeed(30);
+		j2.setSpeed(30);
+		
+
+		this.l2 = 8.7;
+		this.l1 = 11.2;
 		
 		
 	}
 	
-	public void goToAngle(int theta1, int theta2) {
-		this.j1.rotateTo(theta1, true);
-		this.j2.rotateTo(theta2);
+	public void goToAngle(double theta1, double theta2) {
+		
+		
+		
+		this.j1.rotateTo((int)theta1, true);
+		this.j2.rotateTo((int)theta2);
 		
 		
 		/*moved to new function
@@ -41,7 +50,7 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
-	public double[] forwardKinematics(int theta1, int theta2){
+	public double[] forwardKinematics(double theta1, double theta2){
 		double radians1= theta1 * Math.PI/180;
 		double radians2 = theta2 * Math.PI/180;
 		double x = this.l1*Math.cos(radians1) + this.l2*Math.cos(radians1 + radians2);
@@ -90,6 +99,71 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
+	public double[][] invKinematics(double x, double y){
+		double[][] angles = {{j1.getTachoCount()},{j2.getTachoCount()}};
+		double[] pos = {x,y};
+		Matrix angleMat = new Matrix(angles);
+		double Jx1,Jx2,Jy1,Jy2;
+
+		
+		//J.print(System.out);
+		//Button.waitForAnyPress();
+		for(int i = 0; i < 50;i++){
+			
+			Jx1 = -1*this.l1*Math.sin(angleMat.get(0,0)) - this.l2*Math.sin(angleMat.get(0,0) + angleMat.get(1, 0));
+			Jx2 = -1*this.l2*Math.sin(angleMat.get(0,0) + angleMat.get(1, 0));
+			
+			Jy1 = this.l1*Math.cos(angleMat.get(0,0)) - this.l2*Math.cos(angleMat.get(0,0) + angleMat.get(1, 0));
+			Jy2 = this.l2*Math.cos(angleMat.get(0,0) + angleMat.get(1, 0));
+			
+			//System.out.println(x);
+			
+			double[][] array = {{Jx1,Jx2},{Jy1,Jy2}};
+			Matrix J = new Matrix(array);
+			
+			Matrix s = J.solve(f(angleMat, pos));
+			angleMat.plusEquals(s);
+		}
+		angles = angleMat.getArrayCopy();
+		return angles;
+	}
+	
+	public double[][] invKinematics2(double x, double y){
+		double[][] angles = {{0},{0}};
+		
+		double D = (Math.pow(x, 2) + Math.pow(y, 2) - Math.pow(this.l1, 2) - Math.pow(this.l2, 2)) / (2 * this.l1*this.l2);
+		
+		double z = Math.sqrt(1-Math.pow(D, 2))/D;
+		
+		double theta2 = Math.atan2(-z,z);
+		
+		double theta1 =Math.atan(y/x) - Math.atan(this.l2 * Math.sin(theta2) /(this.l1 + this.l2*Math.cos(theta2)));
+		
+		angles[0][0] = theta1;
+		angles[1][0] = theta2;
+		
+		return angles;
+	}
+	
+	public void gotToPoint(double x, double y){
+		double[][] angles = invKinematics(x,y);
+		
+		System.out.printf("theta1: %.2f \n",Math.toDegrees(angles[0][0]));
+		System.out.printf("theta2: %.2f \n",Math.toDegrees(angles[1][0]));
+
+		this.goToAngle(Math.toDegrees(angles[0][0]), Math.toDegrees(angles[1][0]));
+		
+	}
+	
+	
+	public Matrix f(Matrix angles, double[] pos){
+		double fx = this.l1*Math.cos(angles.get(0, 0)) + this.l2*Math.cos(angles.get(0, 0) + angles.get(1, 0)) - pos[0];
+		double fy = this.l1*Math.sin(angles.get(0, 0)) + this.l2*Math.sin(angles.get(0, 0) + angles.get(1, 0)) - pos[1];
+		double[][] f = {{-fx},{-fy}};
+		
+		return new Matrix(f);
+	}
+	
 	public void measureAngle(){
 		double[] pos1, pos2, pos3 = {0,0};
 		double distance, m1, m2;
@@ -122,17 +196,52 @@ public class Arm {
 		
 	}
 	
+	public void findMidPoint(){
+		double[] pos1, pos2 = {0,0};
+		double distance;
+		
+		//this.j1.rotateTo(90, true);
+		//this.j2.rotateTo(0);
+		
+		System.out.println("Pick point \n and press button");
+		pos1 = getPoint();
+		System.out.println("Pick 2nd point \n and press button");
+		pos2 = getPoint();
+		
+		
+		double x = (pos1[0] + pos2[0])/2;
+		double y = (pos1[1] + pos2[1])/2;
+		
+		this.gotToPoint(x, y);		
+		
+		// d = sqrt(y2-y1)^2 + (x2-x1)^2)
+		//distance = Math.sqrt(Math.pow((pos2[0]-pos1[0]),2) + Math.pow((pos2[1]-pos1[1]),2));
+		//System.out.println("Distance: " + distance);
+		Button.waitForAnyPress();
+	}
+	
+	
 	
 	public static void main(String[] args) {
 		Arm a = new Arm();
 		//a.goToAngle(180, 270);
 		//a.measureDistance();
-		a.measureAngle();
+		//a.measureAngle();
+		//a.gotToPoint(1, 10);
+		a.findMidPoint();
+		/*
+		double[][] angles1, angles2 = {{},{}};
 		
-		//while(true){
-		//	System.out.println("pick point");
-		//	a.getPoint();
-		//}
+		double x = 6;
+		double y = 6;
+		
+		angles1 = a.invKinematics(x, y);
+		angles2 = a.invKinematics2(x, y);
+		
+		System.out.println();
+		*/
+		
+		//a.gotToPoint(, );;
 	}
 	
 	

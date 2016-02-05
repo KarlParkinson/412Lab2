@@ -5,8 +5,10 @@ import lejos.hardware.Button;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 import java.lang.Math;
+import java.util.Random;
 
-import lejos.utility.Matrix;;
+import lejos.utility.Matrix;
+import lejos.utility.Delay;
 
 
 public class Arm {
@@ -21,8 +23,8 @@ public class Arm {
 		this.j1 = new EV3LargeRegulatedMotor(MotorPort.D);
 		this.j2 = new EV3LargeRegulatedMotor(MotorPort.A);
 		
-		j1.setSpeed(30);
-		j2.setSpeed(30);
+		j1.setSpeed(50);
+		j2.setSpeed(50);
 		
 
 		this.l2 = 8.7;
@@ -47,7 +49,7 @@ public class Arm {
 		 */
 		forwardKinematics(theta1,theta2);
 	
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 	}
 	
 	public double[] forwardKinematics(double theta1, double theta2){
@@ -104,7 +106,8 @@ public class Arm {
 	}
 	
 	public double[][] invKinematics(double x, double y){
-		double[][] angles = {{j1.getTachoCount()},{j2.getTachoCount()}};
+		Random r = new Random((long) 0.54879);
+		double[][] angles = {{Math.toRadians(j1.getTachoCount() + r.nextDouble())},{Math.toRadians(j2.getTachoCount() + r.nextDouble())}};
 		double[] pos = {x,y};
 		Matrix angleMat = new Matrix(angles);
 		double Jx1,Jx2,Jy1,Jy2;
@@ -154,7 +157,7 @@ public class Arm {
 		return angles;
 	}
 	
-	public void gotToPoint(double x, double y){
+	public void goToPoint(double x, double y){
 		double[][] angles = invKinematics(x,y);
 		
 		System.out.printf("theta1: %.2f \n",Math.toDegrees(angles[0][0]));
@@ -221,7 +224,7 @@ public class Arm {
 		double x = (pos1[0] + pos2[0])/2;
 		double y = (pos1[1] + pos2[1])/2;
 		
-		this.gotToPoint(x, y);		
+		this.goToPoint(x, y);		
 		
 		
 		System.out.printf("p1: (%.1f,%.1f) \n",pos1[0],pos1[1]);
@@ -231,12 +234,33 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
+	public void straightLine(double x1, double y1, double x2, double y2) {
+		this.goToPoint(x1,y1);
+		double slope = (y2-y1)/(x2-x1);
+		//double distance = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
+		
+		double deltaX = (x2-x1)/50;
+		double deltaY = slope*deltaX;
+		
+		Double currY = y1;
+		
+		for (Double currX = x1 + deltaX; currX < x2; currX += deltaX) {
+			currY += deltaY;
+			//System.out.println("x: " + currX.toString() + " y: " + currY.toString());
+			//Delay.msDelay(1000);
+			this.goToPoint(currX, currY);
+		}
+		Button.waitForAnyPress();
+		
+	}
+	
 	
 	
 	public static void main(String[] args) {
 		Arm a = new Arm();
+		a.straightLine(-10,-10,0,17);
 		//a.goToAngle(180, 270);
-		a.measureDistance();
+		//a.measureDistance();
 		//a.measureAngle();
 		//a.gotToPoint(1, 10);
 		//a.findMidPoint();
@@ -253,6 +277,14 @@ public class Arm {
 		*/
 		
 		//a.gotToPoint(, );;
+		//a.goToPoint(-10, -10);
+		//Button.waitForAnyPress();
+		//a.goToPoint(9, 11);
+		//Button.waitForAnyPress();
+		//a.goToPoint(17,0);
+		//Button.waitForAnyPress();
+		//a.goToPoint(0, 17);
+		
 	}
 	
 	

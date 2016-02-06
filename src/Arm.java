@@ -258,7 +258,7 @@ public class Arm {
 	
 	public static void main(String[] args) {
 		Arm a = new Arm();
-		a.straightLine(-10,-10,0,17);
+		//a.straightLine(-10,-10,0,17);
 		//a.goToAngle(180, 270);
 		//a.measureDistance();
 		//a.measureAngle();
@@ -284,6 +284,14 @@ public class Arm {
 		//a.goToPoint(17,0);
 		//Button.waitForAnyPress();
 		//a.goToPoint(0, 17);
+		
+		System.out.println("Pick intersection \n and press button");
+		double[] pos1 = a.getPoint();
+		System.out.println("Pick 1st line \n and press button");
+		double[] pos2 = a.getPoint();
+	
+		a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
+		
 		
 	}
 	

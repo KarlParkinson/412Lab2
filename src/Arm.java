@@ -58,8 +58,8 @@ public class Arm {
 		double x = this.l1*Math.cos(radians1) + this.l2*Math.cos(radians1 + radians2);
 		double y = this.l1*Math.sin(radians1) + this.l2*Math.sin(radians1 + radians2);
 		
-		//System.out.printf("x: %.2f \n",x);
-		//System.out.printf("y: %.2f \n",y);
+		System.out.printf("x: %.2f \n",x);
+		System.out.printf("y: %.2f \n",y);
 		double[] pos = {x,y};
 		return pos;
 	}
@@ -144,13 +144,16 @@ public class Arm {
 		double[][] angles = {{0},{0}};
 		
 		double D = (Math.pow(x, 2) + Math.pow(y, 2) - Math.pow(this.l1, 2) - Math.pow(this.l2, 2)) / (2 * this.l1*this.l2);
-		
+		/*
 		double z = Math.sqrt(1-Math.pow(D, 2))/D;
 		
 		double theta2 = Math.atan2(-z,z);
 		
 		double theta1 =Math.atan(y/x) - Math.atan(this.l2 * Math.sin(theta2) /(this.l1 + this.l2*Math.cos(theta2)));
+		*/
 		
+		double theta2 = Math.acos(D);
+		double theta1 = Math.asin((this.l2*Math.sin(theta2)) / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		angles[0][0] = theta1;
 		angles[1][0] = theta2;
 		
@@ -215,7 +218,7 @@ public class Arm {
 		double[] pos1, pos2 = {0,0};
 		double distance;
 		
-		System.out.println("Pick point \n and press button");
+		System.out.println("Pick poinxt \n and press button");
 		pos1 = getPoint();
 		System.out.println("Pick 2nd point \n and press button");
 		pos2 = getPoint();
@@ -239,59 +242,46 @@ public class Arm {
 		double slope = (y2-y1)/(x2-x1);
 		//double distance = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
 		
-		double deltaX = (x2-x1)/1000
+		double deltaX = (x2-x1)/10
 				;
 		double deltaY = slope*deltaX;
 		
 		Double currY = y1;
 		
-		for (Double currX = x1 + deltaX; currX < x2; currX += deltaX) {
+		for (Double currX = x1 + deltaX; Math.abs(currX) < Math.abs(x2); currX += deltaX) {
 			currY += deltaY;
-			//System.out.println("x: " + currX.toString() + " y: " + currY.toString());
+			System.out.println("x: " + currX.toString() + " y: " + currY.toString());
 			//Delay.msDelay(1000);
 			this.goToPoint(currX, currY);
 		}
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		
+	}
+	
+	public void arc(double[] points) {
+		double currX = points[0];
+		double currY = points[1];
+		
+		for (int i = 3; i <= points.length; i += 2) {
+			this.straightLine(currX, currY, points[i-1], points[i]);
+		}
 	}
 	
 	
 	
 	public static void main(String[] args) {
 		Arm a = new Arm();
-		//a.straightLine(-10,-10,0,17);
-		//a.goToAngle(180, 270);
-		//a.measureDistance();
-		//a.measureAngle();
-		//a.gotToPoint(1, 10);
 		//a.findMidPoint();
-		/*
-		double[][] angles1, angles2 = {{},{}};
 		
-		double x = 6;
-		double y = 6;
+		double[] arc = {0,17,-5,10,-8,-8};
+		a.arc(arc);
 		
-		angles1 = a.invKinematics(x, y);
-		angles2 = a.invKinematics2(x, y);
-		
-		System.out.println();
-		*/
-		
-		//a.gotToPoint(, );;
-		//a.goToPoint(-10, -10);
-		//Button.waitForAnyPress();
-		//a.goToPoint(9, 11);
-		//Button.waitForAnyPress();
-		//a.goToPoint(17,0);
-		//Button.waitForAnyPress();
-		//a.goToPoint(0, 17);
-		
-		System.out.println("Pick intersection \n and press button");
-		double[] pos1 = a.getPoint();
-		System.out.println("Pick 1st line \n and press button");
-		double[] pos2 = a.getPoint();
+		//System.out.println("Pick intersection \n and press button");
+		//double[] pos1 = a.getPoint();
+		//System.out.println("Pick 1st line \n and press button");
+		//double[] pos2 = a.getPoint();
 	
-		a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
+		//a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
 		
 		
 	}

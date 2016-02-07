@@ -239,7 +239,8 @@ public class Arm {
 		double slope = (y2-y1)/(x2-x1);
 		//double distance = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
 		
-		double deltaX = (x2-x1)/50;
+		double deltaX = (x2-x1)/1000
+				;
 		double deltaY = slope*deltaX;
 		
 		Double currY = y1;

@@ -264,7 +264,7 @@ public class Arm {
 		//a.measureAngle();
 		//a.gotToPoint(1, 10);
 		//a.findMidPoint();
-		/*
+		
 		double[][] angles1, angles2 = {{},{}};
 		
 		double x = 6;
@@ -273,10 +273,14 @@ public class Arm {
 		angles1 = a.invKinematics(x, y);
 		angles2 = a.invKinematics2(x, y);
 		
-		System.out.println();
-		*/
+		System.out.printf("1t1: %.1f \n",Math.toDegrees(angles1[0][0]));
+		System.out.printf("1t2: %.1f \n",Math.toDegrees(angles1[1][0]));
+		System.out.printf("2t1: %.1f \n",Math.toDegrees(angles2[0][0]));
+		System.out.printf("2t2: %.1f \n",Math.toDegrees(angles2[1][0]));
 		
-		//a.gotToPoint(, );;
+		System.out.println();
+		
+		
 		//a.goToPoint(-10, -10);
 		//Button.waitForAnyPress();
 		//a.goToPoint(9, 11);
@@ -285,12 +289,12 @@ public class Arm {
 		//Button.waitForAnyPress();
 		//a.goToPoint(0, 17);
 		
-		System.out.println("Pick intersection \n and press button");
-		double[] pos1 = a.getPoint();
-		System.out.println("Pick 1st line \n and press button");
-		double[] pos2 = a.getPoint();
+		//System.out.println("Pick intersection \n and press button");
+		//double[] pos1 = a.getPoint();
+		//System.out.println("Pick 1st line \n and press button");
+		//double[] pos2 = a.getPoint();
 	
-		a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
+		//a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
 		
 		
 	}

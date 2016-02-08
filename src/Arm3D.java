@@ -71,7 +71,7 @@ public class Arm3D {
 		
 		Arm3D a = new Arm3D();
 		
-		a.goToPoint(10, 20, 0);
+		a.goToPoint(0, 15, 7);
 		Button.waitForAnyPress();
 	}
 }

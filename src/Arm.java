@@ -179,6 +179,13 @@ public class Arm {
 		return new Matrix(f);
 	}
 	
+	public void angleDistLine(double x, double y, double theta, double dist) {
+		double x2 = dist*Math.cos(theta);
+		double y2 = dist*Math.sin(theta);
+		
+		this.straightLine(x, y, x2, y2);
+	}
+	
 	public void measureAngle(){
 		double[] pos1, pos2, pos3 = {0,0};
 		double distance, m1, m2;
@@ -237,24 +244,37 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
+	
 	public void straightLine(double x1, double y1, double x2, double y2) {
 		this.goToPoint(x1,y1);
-		double slope = (y2-y1)/(x2-x1);
-		//double distance = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
+		int intPoints = 10;
+		int y = 0;
 		
-		double deltaX = (x2-x1)/10
-				;
-		double deltaY = slope*deltaX;
+		double deltaX;
+		double deltaY;
+		
+		if (x1 == x2) {
+			deltaX = 0;
+			deltaY = (y2-y1)/intPoints;
+		} else {
+			double slope = (y2-y1)/(x2-x1);
+			deltaX = (x2-x1)/intPoints;
+			deltaY = slope*deltaX;
+		}
 		
 		Double currY = y1;
+		Double currX = x1;
 		
-		for (Double currX = x1 + deltaX; Math.abs(currX) < Math.abs(x2); currX += deltaX) {
+		while (y < intPoints) {
+			currX += deltaX;
 			currY += deltaY;
-			System.out.println("x: " + currX.toString() + " y: " + currY.toString());
-			//Delay.msDelay(1000);
+			
+			System.out.println("X: " + currX.toString() + " Y: " + currY.toString());
 			this.goToPoint(currX, currY);
+			//Button.waitForAnyPress();
+			y += 1;
 		}
-		//Button.waitForAnyPress();
+		Button.waitForAnyPress();
 		
 	}
 	
@@ -273,8 +293,19 @@ public class Arm {
 		Arm a = new Arm();
 		//a.findMidPoint();
 		
-		double[] arc = {0,17,-5,10,-8,-8};
-		a.arc(arc);
+		//double[] arc = {0,17,-5,10,-8,-8};
+		//a.arc(arc);
+		
+		a.straightLine(0, 17, -4, 10);
+		//a.goToPoint(-4.8, 7.4);
+		//Button.waitForAnyPress();
+		//a.goToPoint(-6, 5);
+		//Button.waitForAnyPress();
+		//Button.waitForAnyPress();
+		//a.goToPoint(0, 17);
+		//Delay.msDelay(5000);
+		//a.goToPoint(0, 10);
+		//Button.waitForAnyPress();
 		
 		//System.out.println("Pick intersection \n and press button");
 		//double[] pos1 = a.getPoint();

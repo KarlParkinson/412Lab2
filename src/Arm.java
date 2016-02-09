@@ -5,6 +5,8 @@ import lejos.hardware.Button;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 import java.lang.Math;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import lejos.utility.Matrix;
@@ -58,8 +60,8 @@ public class Arm {
 		double x = this.l1*Math.cos(radians1) + this.l2*Math.cos(radians1 + radians2);
 		double y = this.l1*Math.sin(radians1) + this.l2*Math.sin(radians1 + radians2);
 		
-		//System.out.printf("x: %.2f \n",x);
-		//System.out.printf("y: %.2f \n",y);
+		System.out.printf("x: %.2f \n",x);
+		System.out.printf("y: %.2f \n",y);
 		double[] pos = {x,y};
 		return pos;
 	}
@@ -144,13 +146,16 @@ public class Arm {
 		double[][] angles = {{0},{0}};
 		
 		double D = (Math.pow(x, 2) + Math.pow(y, 2) - Math.pow(this.l1, 2) - Math.pow(this.l2, 2)) / (2 * this.l1*this.l2);
-		
+		/*
 		double z = Math.sqrt(1-Math.pow(D, 2))/D;
 		
 		double theta2 = Math.atan2(-z,z);
 		
 		double theta1 =Math.atan(y/x) - Math.atan(this.l2 * Math.sin(theta2) /(this.l1 + this.l2*Math.cos(theta2)));
+		*/
 		
+		double theta2 = Math.acos(D);
+		double theta1 = Math.asin((this.l2*Math.sin(theta2)) / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		angles[0][0] = theta1;
 		angles[1][0] = theta2;
 		
@@ -174,6 +179,13 @@ public class Arm {
 		double[][] f = {{-fx},{-fy}};
 		
 		return new Matrix(f);
+	}
+	
+	public void angleDistLine(double x, double y, double theta, double dist) {
+		double x2 = dist*Math.cos(theta);
+		double y2 = dist*Math.sin(theta);
+		
+		this.straightLine(x, y, x2, y2);
 	}
 	
 	public void measureAngle(){
@@ -215,7 +227,7 @@ public class Arm {
 		double[] pos1, pos2 = {0,0};
 		double distance;
 		
-		System.out.println("Pick point \n and press button");
+		System.out.println("Pick poinxt \n and press button");
 		pos1 = getPoint();
 		System.out.println("Pick 2nd point \n and press button");
 		pos2 = getPoint();
@@ -234,72 +246,96 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
+	
 	public void straightLine(double x1, double y1, double x2, double y2) {
 		this.goToPoint(x1,y1);
-		double slope = (y2-y1)/(x2-x1);
-		//double distance = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
+		int intPoints = 10;
+		int y = 0;
 		
-		double deltaX = (x2-x1)/50;
-		double deltaY = slope*deltaX;
+		double deltaX;
+		double deltaY;
+		
+		if (x1 == x2) {
+			deltaX = 0;
+			deltaY = (y2-y1)/intPoints;
+		} else {
+			double slope = (y2-y1)/(x2-x1);
+			deltaX = (x2-x1)/intPoints;
+			deltaY = slope*deltaX;
+		}
 		
 		Double currY = y1;
+		Double currX = x1;
 		
-		for (Double currX = x1 + deltaX; currX < x2; currX += deltaX) {
+		while (y < intPoints) {
+			currX += deltaX;
 			currY += deltaY;
-			//System.out.println("x: " + currX.toString() + " y: " + currY.toString());
-			//Delay.msDelay(1000);
+			
+			System.out.println("X: " + currX.toString() + " Y: " + currY.toString());
 			this.goToPoint(currX, currY);
+			//Button.waitForAnyPress();
+			y += 1;
 		}
 		Button.waitForAnyPress();
 		
 	}
 	
+	public void labyrinth(){
+		
+		System.out.println("Pick start point, and press enter");
+		Button.waitForAnyPress();
+		
+		ArrayList<AnglePair> angles = new ArrayList<AnglePair>();
+		
+		while(true){
+			if(Button.readButtons() == Button.ID_DOWN){
+				Delay.msDelay(3000);
+				System.out.println("EndPoint");
+				break;
+				
+			}else{
+				angles.add(new AnglePair(this.j1.getTachoCount(),this.j2.getTachoCount()));
+			}
+			Delay.msDelay(50);
+		}
+		
+		System.out.println("Move back to start");
+		Delay.msDelay(3000);
+		Button.waitForAnyPress();
+		
+		for(int i = 0; i < angles.size(); i++){
+			this.goToAngle(angles.get(i).theta1, angles.get(i).theta2);
+		}
+		
+		
+	}
+	
+	public void arc(double[] points) {
+		double currX = points[0];
+		double currY = points[1];
+		
+		for (int i = 3; i <= points.length; i += 2) {
+			this.straightLine(currX, currY, points[i-1], points[i]);
+		}
+	}
 	
 	
+
 	public static void main(String[] args) {
 		Arm a = new Arm();
-		//a.straightLine(-10,-10,0,17);
-		//a.goToAngle(180, 270);
-		//a.measureDistance();
-		//a.measureAngle();
-		//a.gotToPoint(1, 10);
 		//a.findMidPoint();
-		
-		double[][] angles1, angles2 = {{},{}};
-		
-		double x = 6;
-		double y = 6;
-		
-		angles1 = a.invKinematics(x, y);
-		angles2 = a.invKinematics2(x, y);
-		
-		System.out.printf("1t1: %.1f \n",Math.toDegrees(angles1[0][0]));
-		System.out.printf("1t2: %.1f \n",Math.toDegrees(angles1[1][0]));
-		System.out.printf("2t1: %.1f \n",Math.toDegrees(angles2[0][0]));
-		System.out.printf("2t2: %.1f \n",Math.toDegrees(angles2[1][0]));
-		
-		System.out.println();
-		
-		
-		//a.goToPoint(-10, -10);
-		//Button.waitForAnyPress();
-		//a.goToPoint(9, 11);
-		//Button.waitForAnyPress();
-		//a.goToPoint(17,0);
-		//Button.waitForAnyPress();
-		//a.goToPoint(0, 17);
-		
+
+		//a.straightLine(0, 17, -4, 10);
+		//a.goToPoint(-4.8, 7.4);
+
 		//System.out.println("Pick intersection \n and press button");
 		//double[] pos1 = a.getPoint();
 		//System.out.println("Pick 1st line \n and press button");
 		//double[] pos2 = a.getPoint();
 	
 		//a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
-		
+		a.labyrinth();
 		
 	}
-	
-	
-	
-
 }
+

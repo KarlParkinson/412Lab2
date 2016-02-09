@@ -139,6 +139,23 @@ public class Arm {
 		angles[1][0] = angles[1][0] % (2*Math.PI);
 		
 		
+		if ((2*Math.PI) - Math.abs(angles[0][0]) < Math.abs(angles[0][0])) {
+			if (Math.abs(angles[0][0]) > Math.PI) {
+				angles[0][0] = Math.toRadians(-1*(Math.toDegrees((2*Math.PI) - Math.abs(angles[0][0]))));
+			} else {
+				angles[0][0] = (2*Math.PI) - Math.abs(angles[0][0]);
+			}
+		}
+		
+		if ((2*Math.PI) - Math.abs(angles[1][0]) < Math.abs(angles[1][0])) {
+			//if (Math.abs(angles[1][0]) > Math.PI) {
+				//angles[1][0] = Math.toRadians(-1*(Math.toDegrees((2*Math.PI) - Math.abs(angles[1][0]))));
+			//} else {
+				angles[1][0] = (2*Math.PI) - Math.abs(angles[1][0]);
+			//}
+		}
+		
+		
 		return angles;
 	}
 	
@@ -276,7 +293,7 @@ public class Arm {
 			//Button.waitForAnyPress();
 			y += 1;
 		}
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		
 	}
 	
@@ -316,17 +333,45 @@ public class Arm {
 		
 		for (int i = 3; i <= points.length; i += 2) {
 			this.straightLine(currX, currY, points[i-1], points[i]);
+			currX = points[i-1];
+			currY = points[i];
 		}
+	}
+	
+	public void demo() {
+		//Arm a = new Arm();
+		
+		goToAngle(90, 90);
+		
+		Button.waitForAnyPress();
+		measureDistance();
+		Button.waitForAnyPress();
+		measureAngle();
+		Button.waitForAnyPress();
+		goToPoint(10, 10);
+		Button.waitForAnyPress();
+		findMidPoint();
+		Button.waitForAnyPress();
+		this.straightLine(0, 17, -3, 1);
+		Button.waitForAnyPress();
+		this.angleDistLine(10, 10, 45, 4);
+		Button.waitForAnyPress();
+		//this.arc(points);
 	}
 	
 	
 
 	public static void main(String[] args) {
 		Arm a = new Arm();
-		//a.findMidPoint();
+		a.findMidPoint();
+		//a.demo();
+		//a.goToPoint(17, 0);
+		//Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 
 		//a.straightLine(0, 17, -4, 10);
-		//a.goToPoint(-4.8, 7.4);
+		//Button.waitForAnyPress();
+		//a.goToPoint(-4.//8, 7.4);
 
 		//System.out.println("Pick intersection \n and press button");
 		//double[] pos1 = a.getPoint();
@@ -334,7 +379,10 @@ public class Arm {
 		//double[] pos2 = a.getPoint();
 	
 		//a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
-		a.labyrinth();
+		//a.labyrinth();
+		
+		//double[] points = {0, 17, 2, 15, 3, 11, 4, 10};
+		//a.arc(points);
 		
 	}
 }

@@ -65,6 +65,14 @@ public class Arm3D {
 		this.j2.rotateTo((int)t2);
 		this.j3.rotateTo((int)-t3);
 	}
+	
+	public void moveBox(double x, double y, double z, double x2, double y2) {
+		this.goToPoint(x, y, z);
+		//Button.waitForAnyPress();
+		this.goToPoint(x, y, z-3);
+		//Button.waitForAnyPress();
+		this.goToPoint(x2, y2, z-3);
+	}
 
 	
 	public static void main(String[] args) {
@@ -72,6 +80,8 @@ public class Arm3D {
 		Arm3D a = new Arm3D();
 		
 		a.goToPoint(0, 15, 7);
+		Button.waitForAnyPress();
+		a.moveBox(19, 12, 0, 25, -11);
 		Button.waitForAnyPress();
 	}
 }

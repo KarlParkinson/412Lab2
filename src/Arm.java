@@ -12,7 +12,9 @@ import java.util.Random;
 import lejos.utility.Matrix;
 import lejos.utility.Delay;
 
-
+/*
+ * 2DOF arm class
+ */
 public class Arm {
 	
 	EV3LargeRegulatedMotor j1;
@@ -28,32 +30,19 @@ public class Arm {
 		j1.setSpeed(50);
 		j2.setSpeed(50);
 		
-
 		this.l2 = 8.7;
 		this.l1 = 11.2;
-		
-		
 	}
 	
 	public void goToAngle(double theta1, double theta2) {
-		
-		
-		
 		this.j1.rotateTo((int)theta1, true);
 		this.j2.rotateTo((int)theta2);
-		
-		
-		/*moved to new function
-		double radians1= theta1 * Math.PI/180;
-		double radians2 = theta2 * Math.PI/180;
-		double x = this.l1*Math.cos(radians1) + this.l2*Math.cos(radians1 + radians2);
-		double y = this.l1*Math.sin(radians1) + this.l2*Math.sin(radians1 + radians2);
-		 */
 		forwardKinematics(theta1,theta2);
-	
-		//Button.waitForAnyPress();
 	}
 	
+	/*
+	 * Forward kinematics 
+	 */
 	public double[] forwardKinematics(double theta1, double theta2){
 		double radians1= theta1 * Math.PI/180;
 		double radians2 = theta2 * Math.PI/180;
@@ -107,16 +96,16 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
+	/*
+	 * Numerical solution to inverse kinematics, uses newtons method with 15 iterations
+	 */
 	public double[][] invKinematics(double x, double y){
 		Random r = new Random((long) 0.54879);
-		double[][] angles = {{Math.toRadians(j1.getTachoCount() + r.nextDouble())},{Math.toRadians(j2.getTachoCount() + r.nextDouble())}};
+		double[][] angles = {{Math.toRadians(j1.getTachoCount() + r.nextDouble()/100)},{Math.toRadians(j2.getTachoCount() + r.nextDouble()/100)}};
 		double[] pos = {x,y};
 		Matrix angleMat = new Matrix(angles);
 		double Jx1,Jx2,Jy1,Jy2;
 
-		
-		//J.print(System.out);
-		//Button.waitForAnyPress();
 		for(int i = 0; i < 15;i++){
 			
 			Jx1 = -1*this.l1*Math.sin(angleMat.get(0,0)) - this.l2*Math.sin(angleMat.get(0,0) + angleMat.get(1, 0));
@@ -124,8 +113,6 @@ public class Arm {
 			
 			Jy1 = this.l1*Math.cos(angleMat.get(0,0)) - this.l2*Math.cos(angleMat.get(0,0) + angleMat.get(1, 0));
 			Jy2 = this.l2*Math.cos(angleMat.get(0,0) + angleMat.get(1, 0));
-			
-			//System.out.println(x);
 			
 			double[][] array = {{Jx1,Jx2},{Jy1,Jy2}};
 			Matrix J = new Matrix(array);
@@ -138,49 +125,34 @@ public class Arm {
 		angles[0][0] = angles[0][0] % (2*Math.PI);
 		angles[1][0] = angles[1][0] % (2*Math.PI);
 		
-		
-		if ((2*Math.PI) - Math.abs(angles[0][0]) < Math.abs(angles[0][0])) {
-			if (Math.abs(angles[0][0]) > Math.PI) {
-				angles[0][0] = Math.toRadians(-1*(Math.toDegrees((2*Math.PI) - Math.abs(angles[0][0]))));
-			} else {
-				angles[0][0] = (2*Math.PI) - Math.abs(angles[0][0]);
-			}
-		}
-		
-		if ((2*Math.PI) - Math.abs(angles[1][0]) < Math.abs(angles[1][0])) {
-			//if (Math.abs(angles[1][0]) > Math.PI) {
-				//angles[1][0] = Math.toRadians(-1*(Math.toDegrees((2*Math.PI) - Math.abs(angles[1][0]))));
-			//} else {
-				angles[1][0] = (2*Math.PI) - Math.abs(angles[1][0]);
-			//}
-		}
-		
-		
 		return angles;
 	}
-	
+	/*
+	 * Analytic solution to inverse kinematics 
+	 */
 	public double[][] invKinematics2(double x, double y){
 		double[][] angles = {{0},{0}};
 		
 		double D = (Math.pow(x, 2) + Math.pow(y, 2) - Math.pow(this.l1, 2) - Math.pow(this.l2, 2)) / (2 * this.l1*this.l2);
-		/*
-		double z = Math.sqrt(1-Math.pow(D, 2))/D;
 		
-		double theta2 = Math.atan2(-z,z);
+		double z = Math.sqrt(1-Math.pow(D, 2));
+		
+		double theta2 = Math.atan2(z,D);
 		
 		double theta1 =Math.atan(y/x) - Math.atan(this.l2 * Math.sin(theta2) /(this.l1 + this.l2*Math.cos(theta2)));
-		*/
 		
-		double theta2 = Math.acos(D);
-		double theta1 = Math.asin((this.l2*Math.sin(theta2)) / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		angles[0][0] = theta1;
 		angles[1][0] = theta2;
 		
 		return angles;
 	}
 	
+	/*
+	 * Using invkinematics calculates angles to get to a point 
+	 * and moves to that point
+	 */
 	public void goToPoint(double x, double y){
-		double[][] angles = invKinematics(x,y);
+		double[][] angles = invKinematics2(x,y);
 		
 		System.out.printf("theta1: %.2f \n",Math.toDegrees(angles[0][0]));
 		System.out.printf("theta2: %.2f \n",Math.toDegrees(angles[1][0]));
@@ -189,7 +161,9 @@ public class Arm {
 		
 	}
 	
-	
+	/*
+	 * Calculates f for newtons method
+	 */
 	public Matrix f(Matrix angles, double[] pos){
 		double fx = this.l1*Math.cos(angles.get(0, 0)) + this.l2*Math.cos(angles.get(0, 0) + angles.get(1, 0)) - pos[0];
 		double fy = this.l1*Math.sin(angles.get(0, 0)) + this.l2*Math.sin(angles.get(0, 0) + angles.get(1, 0)) - pos[1];
@@ -198,19 +172,21 @@ public class Arm {
 		return new Matrix(f);
 	}
 	
+	/*
+	 * Draws a line given a distance, start point and angle
+	 */
 	public void angleDistLine(double x, double y, double theta, double dist) {
 		double x2 = dist*Math.cos(theta);
 		double y2 = dist*Math.sin(theta);
 		
 		this.straightLine(x, y, x2, y2);
 	}
-	
+	/*
+	 * Measures angle given three points picked by user
+	 */
 	public void measureAngle(){
 		double[] pos1, pos2, pos3 = {0,0};
 		double distance, m1, m2;
-		
-		//this.j1.rotateTo(0, true);
-		//this.j2.rotateTo(0);
 		
 		System.out.println(j1.getTachoCount());
 		System.out.println(j2.getTachoCount());
@@ -234,12 +210,14 @@ public class Arm {
 		System.out.printf("p2: (%.1f,%.1f) \n",pos2[0],pos2[1]);
 		System.out.printf("p3: (%.1f,%.1f) \n",pos3[0],pos3[1]);
 		System.out.printf("angle: %.1f \n",Math.toDegrees(angle));
-		
-		
 		Button.waitForAnyPress();
-		
 	}
 	
+	/*
+	 * Finds midpoint by allowing user to move arm to two 
+	 * points, calculates the midpoint, then uses inverse 
+	 * kinematics to calculate angles to get to that point 
+	 */
 	public void findMidPoint(){
 		double[] pos1, pos2 = {0,0};
 		double distance;
@@ -249,12 +227,10 @@ public class Arm {
 		System.out.println("Pick 2nd point \n and press button");
 		pos2 = getPoint();
 		
-		
 		double x = (pos1[0] + pos2[0])/2;
 		double y = (pos1[1] + pos2[1])/2;
 		
 		this.goToPoint(x, y);		
-		
 		
 		System.out.printf("p1: (%.1f,%.1f) \n",pos1[0],pos1[1]);
 		System.out.printf("p2: (%.1f,%.1f) \n",pos2[0],pos2[1]);
@@ -263,7 +239,9 @@ public class Arm {
 		Button.waitForAnyPress();
 	}
 	
-	
+	/*
+	 * Draw straight line between two points 
+	 */
 	public void straightLine(double x1, double y1, double x2, double y2) {
 		this.goToPoint(x1,y1);
 		int intPoints = 10;
@@ -290,13 +268,14 @@ public class Arm {
 			
 			System.out.println("X: " + currX.toString() + " Y: " + currY.toString());
 			this.goToPoint(currX, currY);
-			//Button.waitForAnyPress();
 			y += 1;
 		}
-		//Button.waitForAnyPress();
-		
 	}
 	
+	/*
+	 * Solves labyrinth problem by saving angles on demonstration run 
+	 * then playing through them
+	 */
 	public void labyrinth(){
 		
 		System.out.println("Pick start point, and press enter");
@@ -326,7 +305,9 @@ public class Arm {
 		
 		
 	}
-	
+	/*
+	 * Draws arc using set of points 
+	 */
 	public void arc(double[] points) {
 		double currX = points[0];
 		double currY = points[1];
@@ -359,31 +340,9 @@ public class Arm {
 		//this.arc(points);
 	}
 	
-	
-
 	public static void main(String[] args) {
 		Arm a = new Arm();
 		a.findMidPoint();
-		//a.demo();
-		//a.goToPoint(17, 0);
-		//Button.waitForAnyPress();
-		//Button.waitForAnyPress();
-
-		//a.straightLine(0, 17, -4, 10);
-		//Button.waitForAnyPress();
-		//a.goToPoint(-4.//8, 7.4);
-
-		//System.out.println("Pick intersection \n and press button");
-		//double[] pos1 = a.getPoint();
-		//System.out.println("Pick 1st line \n and press button");
-		//double[] pos2 = a.getPoint();
-	
-		//a.straightLine(pos1[0],pos1[1],pos2[0],pos2[1]);
-		//a.labyrinth();
-		
-		//double[] points = {0, 17, 2, 15, 3, 11, 4, 10};
-		//a.arc(points);
-		
 	}
 }
 

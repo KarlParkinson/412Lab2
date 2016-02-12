@@ -1,4 +1,6 @@
-
+/*
+ * Class created from storing angle pairs
+ */
 public class AnglePair{
 	double theta1;
 	double theta2;

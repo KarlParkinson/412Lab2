@@ -1,7 +1,9 @@
 import lejos.hardware.Button;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
-
+/*
+ * 3DOF arm class
+ */
 public class Arm3D {
 
 	EV3LargeRegulatedMotor j1; //first motor (closest)
@@ -21,18 +23,24 @@ public class Arm3D {
 		j2.setSpeed(50);
 		j3.setSpeed(50);
 		
-		this.link1 = 11;
+		this.link1 = 12.7;
 		this.link2 = 13.5;
 		this.link3 = 7.5;
 	}
 	
+	/*
+	 * Analytic solution to 3DOF arm 
+	 */
 	public double[][] invKinematics(double x, double y, double z){
 		double[][] angles = {{0},{0},{0}};
 		double theta1,theta2,theta3;
 		double l1,l2;
+		
+		//calculate angle needed for z height
 		theta3 = Math.asin(z/link3);
 		
 		l1 = link1;
+		//l2 is the length of link two plus the horizontal distance of link3 at angle theta3
 		l2 = link2 + link3*Math.cos(theta3);
 		
 		double D = (Math.pow(x, 2) + Math.pow(y, 2) - Math.pow(l1, 2) - Math.pow(l2, 2)) / (2 * l1*l2);
@@ -50,6 +58,9 @@ public class Arm3D {
 		return angles;
 	}
 	
+	/*
+	 * Uses inverse kinematics to find angles needed to reach point x,y,z
+	 */
 	public void goToPoint(double x, double y, double z){
 		double[][] angles = invKinematics(x,y,z);
 		
@@ -66,6 +77,9 @@ public class Arm3D {
 		this.j3.rotateTo((int)-t3);
 	}
 	
+	/*
+	 * Function for moving a box located at (x,y,z) to (x2,y2,z2)
+	 */
 	public void moveBox(double x, double y, double z, double x2, double y2) {
 		this.goToPoint(x, y, z);
 		//Button.waitForAnyPress();
@@ -79,9 +93,9 @@ public class Arm3D {
 		
 		Arm3D a = new Arm3D();
 		
-		a.goToPoint(0, 15, 7);
-		Button.waitForAnyPress();
-		a.moveBox(19, 12, 0, 25, -11);
-		Button.waitForAnyPress();
+		//a.goToPoint(25, -5, 5);
+		//Button.waitForAnyPress();
+		a.moveBox(25, -5, 0, 15, 11);
+		//Button.waitForAnyPress();
 	}
 }
